@@ -10,7 +10,8 @@ Created on Sun Dec 17 12:26:53 2017
 #reset
 
 import os
-os.chdir('C:\\Users\\jhudson\\Documents\\time-series exploration')
+#os.chdir('C:\\Users\\jhudson\\Documents\\time-series exploration')
+os.chdir('C:\\Users\\jhudson\\Downloads\\cryptic-master')
 import cryptoFunctions as cf
 import pandas as pd
 import time as t
@@ -22,6 +23,9 @@ from sklearn.preprocessing import normalize
 import matplotlib as mplt
 from matplotlib import pyplot as plt
 import LSTM_TF as lstm
+import importlib as il
+import stockFunctions as sf
+import dataConstructor as dc
 
 #t1 = t.time()
 
@@ -38,14 +42,14 @@ markets = cf.listMarkets_CW()
 #btcusdOrderBook = cf.getOrderBook_CW('btcusd')
 
 ##Get CandleStick/OHLC Data
-btcusdOHLC = cf.getOHLC_CW('btcusd')
-ethusdOHLC = cf.getOHLC_CW('ethusd')
-ltcusdOHLC = cf.getOHLC_CW('ltcusd')
-xrpusdOHLC = cf.getOHLC_CW('xrpusd','bitfinex')
+btcusdOHLC = cf.getOHLC_CW('btcusd', interval = 86400)
+ethusdOHLC = cf.getOHLC_CW('ethusd', interval = 86400)
+ltcusdOHLC = cf.getOHLC_CW('ltcusd', interval = 86400)
+xrpusdOHLC = cf.getOHLC_CW('xrpusd','bitfinex', interval = 86400)
 #xrpusdOHLC = cf.getOHLC_CW('xrpusd',url = "https://api.cryptowat.ch/markets/bitfinex/")
 rnd_ind = rand.randint(0,len(pairs.symbol))
 #url = "https://api.cryptowat.ch/markets/" + str(markets.exchange.values[markets.pair == pairs.symbol[rnd_ind]][0]) + "/"
-randOHLC = cf.getOHLC_CW(pairs.symbol.values[rnd_ind],markets.exchange.values[markets.pair == pairs.symbol[rnd_ind]][0])
+randOHLC = cf.getOHLC_CW(pairs.symbol.values[rnd_ind],markets.exchange.values[markets.pair == pairs.symbol[rnd_ind]][0], interval = 86400)
 
 ##Get Trades
 #gDaxTrades = cf.getTrades_CW('btcusd','gdax',100)
@@ -68,13 +72,24 @@ randOHLC = cf.getOHLC_CW(pairs.symbol.values[rnd_ind],markets.exchange.values[ma
 
 gDaxSpreads = cf.getOrderBookSpread_CW('btcusd')
 
-preX = pd.concat([btcusdOHLC.Open, ethusdOHLC.Open, ltcusdOHLC.Open, xrpusdOHLC.Open, randOHLC.Open],axis=1)
+btcMACD = sf.MACD(btcusdOHLC.Open,12,26,9)
+ethMACD = sf.MACD(ethusdOHLC.Open,12,26,9)
+btcPPO = sf.PPO(btcusdOHLC.Open,12,26,9)
+ethPPO = sf.PPO(ethusdOHLC.Open,12,26,9)
+
+#preX = pd.concat([btcusdOHLC.Open, ethusdOHLC.Open, ltcusdOHLC.Open, xrpusdOHLC.Open, randOHLC.Open],axis=1)
+preX = pd.concat([btcusdOHLC.Open, ethusdOHLC.Open, btcMACD, ethMACD, btcPPO, ethPPO],axis=1)
 preY = btcusdOHLC.Close.values.reshape(-1,1)
 
 X_data, y_data = lstm.prepData(preX,preY,100)
-myFit = lstm.fitLSTM(X_data,y_data)
+X_train = X_data[:398,:,:]
+y_train = y_data[:398,:,:]
+X_test = X_data[398:,:,:]
+y_test = y_data[398:,:,:]
+myFit = lstm.fitLSTM(X_train,y_train)
 
-
+ax = btcusdOHLC.Open.plot()
+ethusdOHLC.Open.plot(ax=ax)
 
 
 

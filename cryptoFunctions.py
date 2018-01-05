@@ -10,6 +10,7 @@ Created on Sun Dec 17 12:15:22 2017
 
 import requests as r
 import pandas as pd
+import numpy as np
 
 def getOHLC_CW(pair, exchange = None, interval = None, url = None):
     if interval is None:
@@ -19,9 +20,12 @@ def getOHLC_CW(pair, exchange = None, interval = None, url = None):
     if url is None:
         url = "https://api.cryptowat.ch/markets/"
     url = url + str(exchange) + "/" + str(pair) + "/ohlc?periods=" + str(interval)
-    print(url)
+#    print(url)
     req = r.get(url)
     out = req.text
+    
+    if 'null' in out:
+        return(pd.DataFrame(np.reshape([0,0,0,0,0,0,0],[-1,7]),columns = ['TimeStamp','Open','High','Low','Close','Vol','Other']))
     
     out = out[(out.index(':[')+2):(out.index('},')-1)]
 
@@ -65,23 +69,23 @@ def listPairs_CW(url = None):
         tmp2 = temp2.x1[i][(temp2.x1[i].index('d":')+3):(len(temp2.x1[i])-1)]
         temp3 = temp3.append(pd.Series([tmp1, tmp2], index = ["symbol","id"]),ignore_index = True)
         
-    temp4 = pd.DataFrame(columns = ["base-id","base-symbol","base-name","base-isFiat","base-route"])
+    temp4 = pd.DataFrame(columns = ["base_id","base_symbol","base_name","base_isFiat","base_route"])
     for i in range(0, len(temp2)):
         tmp1 = temp2.x2[i][(temp2.x2[i].index('id')+4):(temp2.x2[i].index('symbol')-2)]
         tmp2 = temp2.x2[i][(temp2.x2[i].index('symbol')+9):(temp2.x2[i].index('name')-3)]
         tmp3 = temp2.x2[i][(temp2.x2[i].index('name')+7):(temp2.x2[i].index('fiat')-3)]
         tmp4 = temp2.x2[i][(temp2.x2[i].index('fiat')+6):(temp2.x2[i].index('route')-2)]
         tmp5 = temp2.x2[i][(temp2.x2[i].index('route')+8):(len(temp2.x2[i])-3)]
-        temp4 = temp4.append(pd.Series([tmp1, tmp2, tmp3, tmp4, tmp5], index = ["base-id","base-symbol","base-name","base-isFiat","base-route"]),ignore_index = True)
+        temp4 = temp4.append(pd.Series([tmp1, tmp2, tmp3, tmp4, tmp5], index = ["base_id","base_symbol","base_name","base_isFiat","base_route"]),ignore_index = True)
         
-    temp5 = pd.DataFrame(columns = ["quote-id","quote-symbol","quote-name","quote-isFiat","quote-route"])
+    temp5 = pd.DataFrame(columns = ["quote_id","quote_symbol","quote_name","quote_isFiat","quote_route"])
     for i in range(0, len(temp2)):
         tmp1 = temp2.x3[i][(temp2.x3[i].index('id')+4):(temp2.x3[i].index('symbol')-2)]
         tmp2 = temp2.x3[i][(temp2.x3[i].index('symbol')+9):(temp2.x3[i].index('name')-3)]
         tmp3 = temp2.x3[i][(temp2.x3[i].index('name')+7):(temp2.x3[i].index('fiat')-3)]
         tmp4 = temp2.x3[i][(temp2.x3[i].index('fiat')+6):(temp2.x3[i].index('route')-2)]
         tmp5 = temp2.x3[i][(temp2.x3[i].index('route')+8):(len(temp2.x3[i])-3)]
-        temp5 = temp5.append(pd.Series([tmp1, tmp2, tmp3, tmp4, tmp5], index = ["quote-id","quote-symbol","quote-name","quote-isFiat","quote-route"]),ignore_index = True)
+        temp5 = temp5.append(pd.Series([tmp1, tmp2, tmp3, tmp4, tmp5], index = ["quote_id","quote_symbol","quote_name","quote_isFiat","quote_route"]),ignore_index = True)
         
     temp6 = pd.DataFrame(columns = ["route"])
     for i in range(0, len(temp2)):
