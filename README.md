@@ -29,7 +29,7 @@ Needed:
 -Creation of 'potential' for use in feature generation from orderBook data
 -Creation of function to calculate total volume as well as traded volume over time interval
 -Function to identify correlations between different coin histories using a rolling window
--Add other trading signal-processing functions such as MACD, PPO, etc.  Have several of these elsewhere and will update when found.
+-integrate the stockFunctions module into tsFunctions.  the stockFunctions module contains functions used by 'traders' for 'devining' how a security/stock/etc will perform.
 -function to load data from CSV files into mySQL
 -in insertData function and any other function that involves saving data create routine to automatically save a back up file as csv to specified location.
 -mySQL function to export existing data to csv files for easy transfer over gitHub
