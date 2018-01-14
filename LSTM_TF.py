@@ -5,11 +5,22 @@ Created on Tue Dec 26 16:40:31 2017
 @author: jhudson
 """
 
+"""Used to create tensorflow LSTM models as well as prep the data, STILL VERY MUCH UNDER CONSTRUCTION
+    Functions:
+        fitLSTM: create and fit a tensorflow LSTM model given the provided data
+            attempts to name the model uniquely and returns the address of where model is stored
+        predictLSTM: given the info for a trained model, fit to the data provided.  User can also provide the desired number of 
+            time steps for prediction
+        prepData: given the provided data and other variables, create a data structure for training a LSTM such that it matches up
+            with the provided number of time_steps.  E.G. if the data is originally 500x4 and the user wants 20 time steps the resultant
+            data will be shapped 481x20x4"""
+
 import tensorflow as tf
 import numpy.random as rnd
 import cryptoFunctions as cf
 import numpy as np
 import pandas as pd
+import myMappings as map
 
 glbNameHold = 1
 
@@ -136,17 +147,20 @@ def predLSTM(X_data, info, steps = 1):
 #    X_dataa = X_data.values.reshape((-1,n_steps,3), order='A')
 #    y_dataa = y_data.values.reshape((-1,n_steps,1), order='A')
     
-def prepData(Xin,yin,time_steps):
+def prepData(Xin,yin,time_steps,normType = 'minmax'):
     if(len(np.shape(Xin)) != 2):
         raise ValueError('oops')
+    if normType not in ['minmax','znorm']:
+        raise ValueError('provide normType of minmax or znorm')
     cols = np.shape(Xin)[1]
     np.shape(Xin)
     rows = np.shape(Xin)[0]
-    means = np.mean(Xin)
-    stds = np.mean(Xin)
-    Xtmp = pd.DataFrame((Xin.values - means.values.reshape(1,cols))*(1/stds.values))
-    ytmp = (yin - np.mean(yin))*(1/np.std(yin))
-    
+    if normType == 'znorm':
+        Xtmp = map.myZNorm(Xin)
+        ytmp = map.myZNorm(yin)
+    elif normType == 'minmax':
+        Xtmp = map.myMinMaxMap(Xin)
+        ytmp = map.myMinMaxMap(yin)            
     top = rows - (time_steps - 1)
     
     X_data = np.zeros(shape=(top,time_steps,cols))
@@ -154,10 +168,10 @@ def prepData(Xin,yin,time_steps):
     
     for i in range(top):
         X_data[i,:,:] = Xtmp.values[i:(i+time_steps),:]
-        y_data[i,:,:] = ytmp[i:(i+100)]
+        y_data[i,:,:] = ytmp[i:(i+time_steps)].values.reshape(-1,1)
         
     return X_data, y_data
-        
+    
         
         
         

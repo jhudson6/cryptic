@@ -7,89 +7,39 @@ Created on Sun Dec 17 12:26:53 2017
 
 ## Front end for crypto stuff
 
-#reset
+"""Cryptic Modules:
+    Main:
+        used to create books of coins and call class functions within book to pull and save data, prepare data set for fitting and fit models
+    Classes:
+        Defines two classes: Coins and Books
+        Coin:
+            Coin contains information about a coin such as the table name of the coin (btcusd_gdax), the pair (e.g. btcusd), the exchange (e.g. gdax) and 
+            other relevent information such as the data and relevent interval for OHLC data
+        Book:
+            A book is created with a list of pairs and a specific exchange.  This book will then contain the coins in its wallet.  Contains
+            functions to load data, save data to MySQL, etc.
+    cryptoFunctions:
+        Contains the functions to pull relevant data from the cryptowat.ch api as pandas dataframes.
+        Contains functions to pull features from orderbook spreads
+    mySQLFunctions:
+        contains the functions neccessary to:
+            check for needed tables,
+            create missing tables,
+            load data into tables,
+            pull data from tables
+    LSTM_TF:
+        contains functions to prepare data and fit and predict a LSTM
+    feedparser and rss:
+        Intended to pull titles from google news feed following cryptocurrency and generate features, currently can only pull titles.
+    myMappings:
+        contains functions for feature mappings such as minmax and zNormalization."""
 
 import os
-#os.chdir('C:\\Users\\jhudson\\Documents\\time-series exploration')
-os.chdir('C:\\Users\\jhudson\\Downloads\\cryptic-master')
-import cryptoFunctions as cf
-import pandas as pd
-import time as t
-import random as rand
-import tensorflow as tf
-import numpy as np
-import numpy.random as rnd
-from sklearn.preprocessing import normalize
-import matplotlib as mplt
-from matplotlib import pyplot as plt
-import LSTM_TF as lstm
-import importlib as il
-import stockFunctions as sf
-import dataConstructor as dc
+os.chdir('C:\\Users\\Odin\\Documents\\Python Scripts\\CryptoMarketAnalytics')
+import classes as cn
 
-#t1 = t.time()
-
-##List Pairs
-pairs = cf.listPairs_CW()
-#
-###List Exchanges
-exchanges = cf.listExchanges_CW()
-#
-###List Markets
-markets = cf.listMarkets_CW()
-#
-###Get Orderbook
-#btcusdOrderBook = cf.getOrderBook_CW('btcusd')
-
-##Get CandleStick/OHLC Data
-btcusdOHLC = cf.getOHLC_CW('btcusd', interval = 86400)
-ethusdOHLC = cf.getOHLC_CW('ethusd', interval = 86400)
-ltcusdOHLC = cf.getOHLC_CW('ltcusd', interval = 86400)
-xrpusdOHLC = cf.getOHLC_CW('xrpusd','bitfinex', interval = 86400)
-#xrpusdOHLC = cf.getOHLC_CW('xrpusd',url = "https://api.cryptowat.ch/markets/bitfinex/")
-rnd_ind = rand.randint(0,len(pairs.symbol))
-#url = "https://api.cryptowat.ch/markets/" + str(markets.exchange.values[markets.pair == pairs.symbol[rnd_ind]][0]) + "/"
-randOHLC = cf.getOHLC_CW(pairs.symbol.values[rnd_ind],markets.exchange.values[markets.pair == pairs.symbol[rnd_ind]][0], interval = 86400)
-
-##Get Trades
-#gDaxTrades = cf.getTrades_CW('btcusd','gdax',100)
-#gDaxOrderBook = cf.getOrderBook_CW('btcusd','gdax')
-#gDaxTrades.amount = pd.to_numeric(gDaxTrades.amount)
-#gDaxTrades.price = pd.to_numeric(gDaxTrades.price)
-#gDaxTrades['VolumeUSD'] = pd.Series(gDaxTrades.price * gDaxTrades.amount, index=gDaxTrades.index)
-
-#t2 = t.time()
-
-#print("Loaded Following Data Sets:\n\n -Pairs\n -Exchanges\n -Markets\n -OrderBook:\n     -btcusd\n -OHLC:\n     -btcusd\n     -ethusd\n     -ltcusd\n     -xrpusd\n     -",pairs.symbol.values[rnd_ind],"\n\n In ",t2-t1," Seconds.\n",sep='')
-
-#tmp1 = pd.crosstab(gDaxTrades.timestamp,'NumberTrades',values=gDaxTrades.amount,aggfunc=len)
-#tmp2 = pd.crosstab(gDaxTrades.timestamp,'CoinVolOfTrade',values=gDaxTrades.amount,aggfunc=sum)
-#tmp3 = pd.crosstab(gDaxTrades.timestamp,'USDVolOfTrade',values=gDaxTrades.VolumeUSD,aggfunc=sum)
-#
-#tradeSummarygDax = pd.concat([tmp1, tmp2, tmp3],axis=1)
-#
-#gDaxTradeSummary_BTCUSD = cf.getTradeSummary_CW('btcusd','gdax',100)
-
-gDaxSpreads = cf.getOrderBookSpread_CW('btcusd')
-
-btcMACD = sf.MACD(btcusdOHLC.Open,12,26,9)
-ethMACD = sf.MACD(ethusdOHLC.Open,12,26,9)
-btcPPO = sf.PPO(btcusdOHLC.Open,12,26,9)
-ethPPO = sf.PPO(ethusdOHLC.Open,12,26,9)
-
-#preX = pd.concat([btcusdOHLC.Open, ethusdOHLC.Open, ltcusdOHLC.Open, xrpusdOHLC.Open, randOHLC.Open],axis=1)
-preX = pd.concat([btcusdOHLC.Open, ethusdOHLC.Open, btcMACD, ethMACD, btcPPO, ethPPO],axis=1)
-preY = btcusdOHLC.Close.values.reshape(-1,1)
-
-X_data, y_data = lstm.prepData(preX,preY,100)
-X_train = X_data[:398,:,:]
-y_train = y_data[:398,:,:]
-X_test = X_data[398:,:,:]
-y_test = y_data[398:,:,:]
-myFit = lstm.fitLSTM(X_train,y_train)
-
-ax = btcusdOHLC.Open.plot()
-ethusdOHLC.Open.plot(ax=ax)
+pairs = ['btcusd','ethusd','ltcusd']
+book = cn.Book(pairs,exchange='gdax')
 
 
 
@@ -102,5 +52,19 @@ ethusdOHLC.Open.plot(ax=ax)
 
 
 
+#import importlib as il
+#import pandas as pd
+#import time as t
+#import random as rand
+##import tensorflow as tf #Currently not set-up
+#import numpy as np
+#import numpy.random as rnd
+#from sklearn.preprocessing import normalize
+#import matplotlib as mplt
+#from matplotlib import pyplot as plt
 
+#import LSTM_TF as lstm
+#import mySQLFunctions as mysql
+#import cryptoFunctions as cf
 
+\
