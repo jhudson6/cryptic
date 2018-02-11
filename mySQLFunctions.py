@@ -31,7 +31,7 @@ def insertData(data,Table):
     return
 
 def getData(Table,whereClause=None):
-    conn = pyo.connect(r'DRIVER={MySQL ODBC 5.3 ANSI Driver};SERVER=localhost;DATABASE=crypto;USER=root;PASSWORD=11a2B3c4d5e6f;OPTION=3;')
+    conn = pyo.connect(r'DRIVER={MySQL ODBC 5.3 ANSI Driver};SERVER=localhost;DATABASE=crypto;USER=root;PASSWORD=mellon;OPTION=3;')
     curr = conn.cursor()
     if whereClause is None:
         query = 'Select * from {}'.format(str(Table))
@@ -44,7 +44,7 @@ def getData(Table,whereClause=None):
     return data
 
 def checkTables(pairs,exchange):
-    conn = pyo.connect(r'DRIVER={MySQL ODBC 5.3 ANSI Driver};SERVER=localhost;DATABASE=crypto;USER=root;PASSWORD=11a2B3c4d5e6f;OPTION=3;')
+    conn = pyo.connect(r'DRIVER={MySQL ODBC 5.3 ANSI Driver};SERVER=localhost;DATABASE=crypto;USER=root;PASSWORD=mellon;OPTION=3;')
     curr = conn.cursor()
     query = 'Select table_name from information_schema.tables where table_schema = "crypto"'
     curr = curr.execute(query)
@@ -64,7 +64,7 @@ def checkTables(pairs,exchange):
             return False
 
 def createTable(Table):
-    conn = pyo.connect(r'DRIVER={MySQL ODBC 5.3 ANSI Driver};SERVER=localhost;DATABASE=crypto;USER=root;PASSWORD=11a2B3c4d5e6f;OPTION=3;')
+    conn = pyo.connect(r'DRIVER={MySQL ODBC 5.3 ANSI Driver};SERVER=localhost;DATABASE=crypto;USER=root;PASSWORD=mellon;OPTION=3;')
     curr = conn.cursor()
     query = 'create table {}(timespan int(11) not null, timestamp datetime not null, open float not null, high float not null, low float not null, close float not null, vol float not null)'.format(Table)
     curr.execute(query)
